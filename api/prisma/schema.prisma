@@ -1,0 +1,308 @@
+// Desenho do banco do Empórium da Horta.
+//
+// Os nomes em TypeScript são camelCase e os nomes no banco são snake_case —
+// o @map/@@map faz a ponte. Isso mantém as duas convenções em paz e deixa o
+// SQL cru (usado no painel) legível para quem abrir o banco direto.
+//
+// Todo valor em dinheiro é Int, em CENTAVOS. R$ 5,99 é 599. Ponto flutuante
+// acumula erro de arredondamento e some centavo em conta grande.
+
+// O gerador do Prisma 7 escreve TypeScript numa pasta do projeto, em vez de
+// se esconder dentro de node_modules. `gerado/` é código de máquina: não se
+// edita à mão e não vai para o git.
+generator client {
+  provider = "prisma-client"
+  output   = "../src/banco/gerado"
+}
+
+// No Prisma 7 as URLs saem do schema: as migrações leem de prisma.config.ts e
+// a aplicação passa a conexão pelo adapter, em src/banco/conexao.ts.
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// Listas fechadas
+// ─────────────────────────────────────────────────────────────
+
+enum PapelEquipe {
+  dono
+  motorista
+
+  @@map("papel_equipe")
+}
+
+enum UnidadeVenda {
+  kg
+  un
+  maco
+  bandeja
+  cartela
+
+  @@map("unidade_venda")
+}
+
+enum FormaPagamento {
+  pix
+  cartao
+  dinheiro
+
+  @@map("forma_pagamento")
+}
+
+enum StatusPedido {
+  recebido
+  em_separacao
+  em_rota
+  entregue
+  /// Tentou e não deu. Continua vivo: volta para a rota até alguém resolver.
+  nao_entregue
+  cancelado
+
+  @@map("status_pedido")
+}
+
+/// Por que a entrega não aconteceu. Sem isto, "não entregue" não diz se o
+/// problema foi o cliente, o endereço ou a mercadoria — e cada um pede uma
+/// providência diferente do dono.
+enum MotivoNaoEntrega {
+  ausente
+  endereco_nao_encontrado
+  recusado
+  outro
+
+  @@map("motivo_nao_entrega")
+}
+
+/// De onde veio a coordenada da entrega: do endereço completo (exata), do
+/// centro do bairro (aproximada) ou de lugar nenhum. O motorista precisa
+/// saber a diferença antes de sair dirigindo.
+enum PrecisaoLocal {
+  exata
+  aproximada
+  desconhecida
+
+  @@map("precisao_local")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Catálogo
+// ─────────────────────────────────────────────────────────────
+
+model Categoria {
+  id    Int    @id @default(autoincrement())
+  nome  String @unique
+  ordem Int    @default(0)
+
+  produtos Produto[]
+
+  @@map("categorias")
+}
+
+model Produto {
+  id            Int          @id @default(autoincrement())
+  nome          String
+  emoji         String       @default("🥦")
+  fotoUrl       String?      @map("foto_url")
+  precoCentavos Int          @map("preco_centavos")
+  unidade       UnidadeVenda @default(kg)
+  categoriaId   Int          @map("categoria_id")
+  oferta        Boolean      @default(false)
+  /// Oculto some da loja, mas continua no painel e nos pedidos antigos.
+  oculto        Boolean      @default(false)
+  criadoEm      DateTime     @default(now()) @map("criado_em") @db.Timestamptz()
+  atualizadoEm  DateTime     @updatedAt @map("atualizado_em") @db.Timestamptz()
+
+  categoria Categoria    @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  itens     ItemPedido[]
+
+  @@index([categoriaId], map: "produtos_categoria_idx")
+  @@map("produtos")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Pessoas
+//
+// Só existe a equipe. Cliente não tem conta: compra informando nome, telefone
+// e endereço, e acompanha o pedido pelo número mais o telefone. Não há nada a
+// cadastrar, lembrar ou recuperar.
+// ─────────────────────────────────────────────────────────────
+
+model UsuarioEquipe {
+  id        Int         @id @default(autoincrement())
+  nome      String
+  email     String      @unique
+  senhaHash String      @map("senha_hash")
+  papel     PapelEquipe
+  ativo     Boolean     @default(true)
+  criadoEm  DateTime    @default(now()) @map("criado_em") @db.Timestamptz()
+
+  posicao PosicaoMotorista?
+
+  @@map("usuarios_equipe")
+}
+
+/// Onde o motorista estava da última vez que o aparelho dele contou.
+///
+/// Uma linha por pessoa, sobrescrita a cada aviso: guarda o AGORA, não o
+/// trajeto. Histórico de localização de funcionário cresce sem limite e vira um
+/// passivo que ninguém pediu — se um dia for preciso, que seja uma decisão
+/// consciente, com prazo de descarte.
+///
+/// `atualizadoEm` não é enfeite: posição de quarenta minutos atrás mostrada como
+/// "onde ele está" é mentira com cara de mapa. A tela do dono sempre diz a idade.
+model PosicaoMotorista {
+  usuarioId      Int      @id @map("usuario_id")
+  latitude       Float
+  longitude      Float
+  /// Raio de incerteza declarado pelo aparelho. Dentro de galpão passa de 1 km.
+  precisaoMetros Float    @map("precisao_metros")
+  atualizadoEm   DateTime @updatedAt @map("atualizado_em") @db.Timestamptz()
+
+  usuario UsuarioEquipe @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("posicoes_motorista")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Lugares
+//
+// Não há tabela de bairros: nada sobre endereço é fixado em código. O que o
+// sistema sabe de lugares vem da BrasilAPI (texto do endereço) e do Nominatim
+// (coordenada), e esta tabela guarda só o que já foi perguntado.
+// ─────────────────────────────────────────────────────────────
+
+/// Cache dos endereços já procurados. Geocodificação é lenta e tem limite de
+/// uso — o mesmo endereço nunca é perguntado duas vezes.
+model EnderecoGeocodificado {
+  id               Int           @id @default(autoincrement())
+  chave            String        @unique
+  latitude         Float?
+  longitude        Float?
+  precisao         PrecisaoLocal
+  /// Como o serviço de mapas entendeu o endereço — ajuda a depurar.
+  rotuloEncontrado String?       @map("rotulo_encontrado")
+  criadoEm         DateTime      @default(now()) @map("criado_em") @db.Timestamptz()
+
+  @@map("enderecos_geocodificados")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Pedidos
+// ─────────────────────────────────────────────────────────────
+
+model Pedido {
+  id Int @id @default(autoincrement())
+  /// Número que o cliente vê (#1000, #1001, …). Sequência própria, começando
+  /// em 1000, para não expor quantos pedidos a loja já teve.
+  numero Int @unique @default(autoincrement())
+
+  /// Contato copiado no momento do pedido: se o cliente mudar o telefone
+  /// depois, o pedido antigo continua com o dado de quando foi feito.
+  nomeContato     String @map("nome_contato")
+  telefoneContato String @map("telefone_contato")
+
+  cep            String
+  bairro         String
+  rua            String
+  numeroEndereco String        @map("numero_endereco")
+  complemento    String?
+  latitude       Float?
+  longitude      Float?
+  precisaoLocal  PrecisaoLocal @default(desconhecida) @map("precisao_local")
+
+  formaPagamento FormaPagamento @map("forma_pagamento")
+  /// Com quanto o cliente vai pagar, quando é em dinheiro. O TROCO é a
+  /// diferença para o total — calculado na hora de mostrar, nunca guardado:
+  /// dois números que precisam concordar acabam discordando.
+  pagaComCentavos Int?          @map("paga_com_centavos")
+  agendadoPara   DateTime?      @map("agendado_para") @db.Timestamptz()
+
+  subtotalCentavos Int @map("subtotal_centavos")
+  freteCentavos    Int @map("frete_centavos")
+  totalCentavos    Int @map("total_centavos")
+
+  status StatusPedido @default(recebido)
+  /// Declarada e ainda sem uso: a ordem das paradas é calculada na hora pelo
+  /// serviço de rotas. Ou passa a guardar a ordem do dia, ou sai do esquema.
+  ordemRota Int? @map("ordem_rota")
+
+  /// ── Comprovante de entrega ───────────────────────────────
+  /// Quem recebeu e, quando o motorista tirou, a foto da entrega. É o que
+  /// existe de concreto no dia em que um cliente disser "não recebi" — sem
+  /// isto, sobra a palavra de um contra a do outro.
+  recebidoPor    String? @map("recebido_por")
+  fotoEntregaUrl String? @map("foto_entrega_url")
+
+  /// ── Tentativa que não deu certo ──────────────────────────
+  /// O motorista registra o motivo na hora, na porta do cliente. É o único
+  /// momento em que alguém sabe o que houve — depois vira suposição.
+  motivoNaoEntrega  MotivoNaoEntrega? @map("motivo_nao_entrega")
+  observacaoEntrega String?           @map("observacao_entrega")
+  tentadoEm         DateTime?         @map("tentado_em") @db.Timestamptz()
+
+  criadoEm   DateTime  @default(now()) @map("criado_em") @db.Timestamptz()
+  entregueEm DateTime? @map("entregue_em") @db.Timestamptz()
+
+  itens ItemPedido[]
+
+  @@index([criadoEm], map: "pedidos_criado_em_idx")
+  @@map("pedidos")
+}
+
+model ItemPedido {
+  id        Int  @id @default(autoincrement())
+  pedidoId  Int  @map("pedido_id")
+  produtoId Int? @map("produto_id")
+
+  /// Nome, preço e unidade são congelados aqui. Se o dono mudar o preço da
+  /// banana amanhã, o pedido de hoje continua valendo o preço de hoje.
+  nomeProduto           String       @map("nome_produto")
+  emojiProduto          String       @default("🥦") @map("emoji_produto")
+  precoUnitarioCentavos Int          @map("preco_unitario_centavos")
+  unidade               UnidadeVenda
+  quantidade            Int
+  subtotalCentavos      Int          @map("subtotal_centavos")
+
+  pedido  Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produto Produto? @relation(fields: [produtoId], references: [id], onDelete: SetNull)
+
+  /// Único por (pedido, produto): a API já junta as quantidades repetidas, e
+  /// aqui o banco garante. Produto apagado vira NULL, e NULLs não conflitam
+  /// entre si, então o histórico continua intacto. Serve também como o índice
+  /// de busca dos itens por pedido — o mais usado do sistema.
+  @@unique([pedidoId, produtoId], map: "itens_pedido_pedido_produto_idx")
+  @@index([produtoId], map: "itens_pedido_produto_idx")
+  @@map("itens_pedido")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Configurações da loja — uma linha só, id = 1
+// ─────────────────────────────────────────────────────────────
+
+model Configuracoes {
+  id                         Int      @id @default(1)
+  pedidoMinimoCentavos       Int      @default(3000) @map("pedido_minimo_centavos")
+  taxaEntregaCentavos        Int      @default(800) @map("taxa_entrega_centavos")
+  entregaGratisAcimaCentavos Int      @default(9900) @map("entrega_gratis_acima_centavos")
+  metaSemanalCentavos        Int      @default(2500000) @map("meta_semanal_centavos")
+  horaLimitePedido           Int      @default(12) @map("hora_limite_pedido")
+  janelaEntrega              String   @default("hoje entre 15h e 18h") @map("janela_entrega")
+
+  /// ── De onde o motorista sai ──────────────────────────────
+  /// Fica aqui, e não no .env, porque o dono troca de sede sem chamar
+  /// programador. Enquanto latitude e longitude forem nulas, a rota usa o
+  /// valor do ambiente e a tela do motorista avisa que a Central é provisória:
+  /// Central errada torna errado todo km e todo minuto do dia.
+  centralNome                String   @default("Central de Distribuição") @map("central_nome")
+  centralCep                 String?  @map("central_cep")
+  centralRua                 String?  @map("central_rua")
+  centralNumero              String?  @map("central_numero")
+  centralBairro              String?  @map("central_bairro")
+  centralLatitude            Float?   @map("central_latitude")
+  centralLongitude           Float?   @map("central_longitude")
+
+  atualizadoEm               DateTime @updatedAt @map("atualizado_em") @db.Timestamptz()
+
+  @@map("configuracoes")
+}

@@ -1,0 +1,33 @@
+{
+  "name": "loja-emporium",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Loja virtual do Empórium da Horta — hortifruti de atacado e varejo em Manaus",
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c green,yellow \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev -w api",
+    "dev:web": "npm run dev -w web",
+    "tunel": "ngrok http 5173",
+    "tunel:producao": "ngrok http 4173",
+    "build": "npm run build -w api && npm run build -w web",
+    "preview": "npm run preview -w web",
+    "check": "npm run check -w api && npm run check -w web",
+    "db:generate": "npm run db:generate -w api",
+    "db:migrate": "npm run db:migrate -w api",
+    "db:reset": "npm run db:reset -w api",
+    "db:deploy": "npm run db:deploy -w api",
+    "db:studio": "npm run db:studio -w api",
+    "db:preparar": "npm run db:preparar -w api",
+    "db:relocalizar": "npm run db:relocalizar -w api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20.11"
+  }
+}

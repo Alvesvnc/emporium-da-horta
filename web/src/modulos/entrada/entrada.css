@@ -1,0 +1,46 @@
+/* ── Entrada ──────────────────────────────────────────────── */
+.entrada {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent-2-900);
+  padding: 20px;
+}
+.entrada-cartao {
+  width: 100%;
+  max-width: 880px;
+  background: var(--color-neutral-100);
+  border-radius: 28px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  box-shadow: var(--shadow-lg);
+  animation: surgir 0.4s ease;
+}
+.entrada-marca {
+  background: var(--color-accent-2-800);
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 18px;
+  min-height: 360px;
+  position: relative;
+  overflow: hidden;
+}
+.entrada-marca img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  mix-blend-mode: lighten;
+  position: relative;
+}
+.entrada-painel {
+  padding: 44px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}

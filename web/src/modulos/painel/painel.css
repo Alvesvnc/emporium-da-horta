@@ -1,0 +1,298 @@
+/* ── Painel do dono ───────────────────────────────────────── */
+.faixa {
+  background: var(--color-accent-2-800);
+  border-radius: 24px;
+  padding: 26px 30px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 30px;
+}
+.abas {
+  display: flex;
+  background: var(--color-neutral-200);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 2px;
+}
+.abas button {
+  padding: 9px 22px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  background: transparent;
+  color: var(--color-neutral-600);
+}
+.abas button[aria-pressed='true'] {
+  background: var(--color-neutral-100);
+  color: var(--color-accent-2-900);
+}
+.duas-colunas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+.indicador {
+  background: var(--color-neutral-100);
+  border-radius: 20px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  text-align: left;
+  border: none;
+  font: inherit;
+  color: inherit;
+  transition: box-shadow 0.15s;
+}
+.indicador:hover { box-shadow: var(--shadow-md); }
+
+.colunas { display: flex; align-items: flex-end; gap: 10px; position: relative; }
+.colunas .coluna {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.colunas .barra { width: 100%; max-width: 30px; border-radius: 999px; min-height: 2px; }
+
+.cortina {
+  position: fixed;
+  inset: 0;
+  background: rgba(32, 30, 29, 0.55);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.janela {
+  background: var(--color-neutral-100);
+  border-radius: 28px;
+  width: 100%;
+  max-height: 84vh;
+  overflow: auto;
+  padding: 28px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: surgir 0.25s ease;
+}
+.resumo-faixa {
+  background: var(--color-accent-2-100);
+  border-radius: 16px;
+  padding: 14px 18px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-accent-2-900);
+}
+
+.grade-gerencia {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  padding-top: 4px;
+}
+.item-gerencia {
+  background: var(--color-bg);
+  border-radius: 18px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  align-self: start;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+.item-gerencia:hover { border-color: var(--color-accent-2-300); }
+
+.envio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 1.5px dashed var(--color-accent-2-300);
+  color: var(--color-accent-2-800);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--color-accent-2-100);
+  white-space: nowrap;
+}
+.envio:hover { border-color: var(--color-accent-2); }
+
+/* ── Central de distribuição ──────────────────────────────── */
+.central-cartao { gap: 12px; }
+.central-titulo { font-size: 16px; color: var(--color-accent-2-900); }
+.central-explicacao {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-neutral-600);
+  margin: 4px 0 0;
+}
+.central-linha { display: grid; grid-template-columns: 148px 1fr; gap: 10px; }
+.central-alerta {
+  margin: 0;
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+  border-radius: 12px;
+  padding: 9px 13px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.central-localizar { align-self: flex-start; padding: 10px 20px; font-size: 13px; }
+.central-acoes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--color-neutral-200);
+  padding-top: 12px;
+}
+.central-acoes .botao-verde { padding: 11px 24px; font-size: 13.5px; }
+.central-selo {
+  background: var(--color-accent-2-100);
+  color: var(--color-accent-2-800);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+
+/* ── Trocos a separar ─────────────────────────────────────── */
+.aviso-trocos {
+  background: var(--color-accent-100);
+  border: 2px solid var(--color-accent-300);
+  border-radius: 20px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.aviso-trocos-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.aviso-trocos-titulo { font-size: 17px; color: var(--color-accent-800); }
+.aviso-trocos-contador {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--color-accent-700);
+  white-space: nowrap;
+}
+.aviso-trocos-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.aviso-trocos-lista li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  align-items: center;
+  background: var(--color-neutral-100);
+  border-radius: 12px;
+  padding: 10px 13px;
+}
+.aviso-trocos-pedido { font-size: 13.5px; font-weight: 700; }
+.aviso-trocos-detalhe {
+  grid-column: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-neutral-600);
+}
+.aviso-trocos-valor {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-accent-800);
+  white-space: nowrap;
+}
+
+/* ── Onde está o motorista ────────────────────────────────── */
+.motoristas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.motorista {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--color-bg);
+  border-radius: 12px;
+  padding: 10px 13px;
+}
+.motorista-farol { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+/* A cor é a idade da informação, não o humor do motorista: verde = agora,
+   laranja = já tem um tempo, vermelho = velha demais para descrever o agora. */
+.motorista-vivo { background: #2f8f4e; }
+.motorista-morno { background: var(--color-accent); }
+.motorista-frio { background: #a8391a; }
+.motorista-apagado { background: var(--color-neutral-400); }
+.motorista-nome { font-size: 13.5px; font-weight: 700; }
+.motorista-quando { font-size: 12px; font-weight: 600; color: var(--color-neutral-600); }
+.motorista-quando.motorista-vivo,
+.motorista-quando.motorista-morno,
+.motorista-quando.motorista-frio,
+.motorista-quando.motorista-apagado { background: none; }
+.motorista-quando.motorista-frio { color: #a8391a; }
+.motorista-impreciso { color: var(--color-neutral-500); }
+
+/* ── Paradas, na visão do dono ────────────────────────────── */
+.parada-dono {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+.parada-dono:last-child { border-bottom: none; }
+.parada-dono-ativa { background: var(--color-accent-100); border-radius: 12px; padding: 10px 12px; }
+.parada-dono-ordem {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-accent-2);
+  color: var(--color-neutral-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.parada-dono-feita { background: var(--color-accent-2-300); color: var(--color-accent-2-900); }
+.parada-dono-cliente { font-size: 13.5px; font-weight: 700; }
+.parada-dono-alerta { font-size: 11.5px; font-weight: 700; color: #8a2f10; }
+.parada-dono-valor {
+  font-size: 13.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.parada-dono-troco { font-size: 11px; font-weight: 700; color: var(--color-accent-700); }

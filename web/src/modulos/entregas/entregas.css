@@ -1,0 +1,548 @@
+/* ── Rota do motorista ────────────────────────────────────── */
+.parada { border-radius: 18px; overflow: hidden; }
+.parada-linha { display: flex; align-items: center; gap: 12px; padding: 12px 14px; flex-wrap: wrap; }
+.parada-numero {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--color-neutral-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.botao-itens {
+  border: 1.5px solid var(--color-neutral-300);
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-600);
+  padding: 6px 13px;
+  font-weight: 700;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.botao-itens:hover { border-color: var(--color-accent-2); color: var(--color-accent-2-800); }
+.botao-entregue {
+  border: none;
+  background: var(--color-accent-2);
+  color: var(--color-neutral-100);
+  padding: 7px 14px;
+  font-weight: 700;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.botao-entregue:hover { background: var(--color-accent-2-600); }
+.botao-navegar {
+  border: 1.5px solid var(--color-accent-2-300);
+  background: var(--color-accent-2-100);
+  color: var(--color-accent-2-800);
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 11.5px;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.botao-navegar:hover { background: var(--color-accent-2-200); color: var(--color-accent-2-900); }
+
+/* ── Mapa de verdade (MapLibre) ───────────────────────────── */
+.mapa-real { display: flex; flex-direction: column; gap: 6px; }
+.mapa-tela {
+  height: 320px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.mapa-nota { margin: 0; }
+
+/* O MapLibre injeta a própria fonte; alinhamos com a da marca. */
+.maplibregl-popup-content {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 8px 12px;
+  color: var(--color-text);
+}
+.maplibregl-ctrl-attrib { font-size: 10px; }
+
+/* ── Estrutura da tela ────────────────────────────────────── */
+.rota-conteudo { max-width: 780px; padding: 20px 16px 48px; gap: 16px; }
+.rota-titulo { font-size: 22px; color: var(--color-accent-2-900); }
+.rota-subtitulo { font-size: 15px; color: var(--color-accent-2-900); margin-bottom: 2px; }
+.rota-cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.selo-rota {
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 5px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.selo-rota-bom { background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+.selo-rota-fraco { background: var(--color-accent-100); color: var(--color-accent-700); }
+
+.rota-progresso {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-neutral-300);
+  overflow: hidden;
+}
+.rota-progresso > div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-accent-2);
+  transition: width 0.3s;
+}
+
+.rota-fim {
+  text-align: center;
+  background: var(--color-accent-2-100);
+  border-radius: 20px;
+  padding: 28px 20px;
+  font-weight: 700;
+  color: var(--color-accent-2-800);
+  font-size: 15px;
+}
+.rota-link-completo { padding: 12px; text-align: center; text-decoration: none; }
+.rota-seguintes { display: flex; flex-direction: column; gap: 8px; }
+.rota-feitas summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-neutral-600);
+}
+.rota-feitas > div {
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── A parada de agora ────────────────────────────────────── */
+.parada-atual {
+  background: var(--color-neutral-100);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 2px solid var(--color-accent-2-300);
+}
+.parada-atual-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.parada-atual-contador {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: var(--color-accent-2-700);
+}
+.parada-atual-tempo { font-size: 12.5px; font-weight: 700; color: var(--color-neutral-600); }
+
+.parada-atual-endereco {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.15;
+  color: var(--color-accent-2-900);
+  margin: 0;
+  text-wrap: balance;
+}
+.parada-atual-bairro {
+  margin: -4px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-neutral-600);
+}
+.parada-atual-alerta {
+  margin: 0;
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.parada-atual-cliente {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-neutral-600);
+  border-top: 1px solid var(--color-neutral-200);
+  padding-top: 10px;
+}
+.parada-atual-cliente a { color: var(--color-accent-2-700); font-weight: 700; }
+
+.parada-atual-itens { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.parada-atual-itens li { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
+.parada-atual-emoji { font-size: 18px; }
+.parada-atual-nome { flex: 1; }
+.parada-atual-qtd {
+  background: var(--color-accent-2-100);
+  color: var(--color-accent-2-900);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.parada-atual-cobranca {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-neutral-600);
+  border-top: 1px solid var(--color-neutral-200);
+  padding-top: 10px;
+}
+.parada-atual-cobranca b { color: var(--color-accent-2-900); font-size: 15px; }
+
+/* Alvos grandes: isto é tocado com uma mão, dentro do carro. */
+.parada-atual-acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 2px; }
+.acao-navegar,
+.acao-entregue {
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.acao-navegar { background: var(--color-accent); color: var(--color-neutral-100); }
+.acao-navegar:hover { background: var(--color-accent-600); }
+.acao-entregue { background: var(--color-accent-2); color: var(--color-neutral-100); }
+.acao-entregue:hover:not(:disabled) { background: var(--color-accent-2-600); }
+
+.mapa-carregando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-500);
+  font-weight: 600;
+}
+
+/* ── Onde o motorista está (GPS) ──────────────────────────── */
+.ponto-motorista { position: relative; width: 22px; height: 22px; }
+.ponto-motorista-nucleo,
+.ponto-motorista-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+.ponto-motorista-nucleo {
+  background: #2f6fd0;
+  border: 3px solid var(--color-neutral-100);
+  box-shadow: 0 1px 5px rgba(46, 43, 37, 0.45);
+}
+.ponto-motorista-halo {
+  background: #2f6fd0;
+  opacity: 0.35;
+  animation: pulso-gps 2s ease-out infinite;
+}
+@keyframes pulso-gps {
+  0% { transform: scale(1); opacity: 0.35; }
+  70% { transform: scale(2.6); opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+/* Quem prefere menos movimento na tela não precisa de um ponto pulsando. */
+@media (prefers-reduced-motion: reduce) {
+  .ponto-motorista-halo { animation: none; }
+}
+
+/* ── Barra do GPS ─────────────────────────────────────────── */
+.gps-barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--color-neutral-100);
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow: var(--shadow-sm);
+}
+.gps-botao { padding: 9px 18px; font-size: 12.5px; font-weight: 800; }
+.gps-estado { font-size: 12px; font-weight: 700; color: var(--color-neutral-600); }
+.gps-estado-vivo { color: #2f6fd0; }
+.gps-recado { font-size: 12px; font-weight: 600; color: var(--color-neutral-600); margin: 0; flex-basis: 100%; }
+
+.parada-atual-aovivo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eaf1fb;
+  color: #1f4e96;
+  border-radius: 12px;
+  padding: 9px 13px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.parada-atual-chegou {
+  background: var(--color-accent-2-100);
+  color: var(--color-accent-2-800);
+}
+
+/* ── Navegação curva a curva ──────────────────────────────── */
+.navegacao {
+  background: #1f4e96;
+  color: #f4f8ff;
+  border-radius: 20px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-md);
+}
+.navegacao-chegando { background: var(--color-accent-2-800); }
+
+.navegacao-manobra { display: flex; align-items: center; gap: 14px; }
+.navegacao-seta {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.navegacao-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.navegacao-distancia { font-size: 26px; font-weight: 800; line-height: 1.05; }
+.navegacao-instrucao { font-size: 15px; font-weight: 700; line-height: 1.25; text-wrap: balance; }
+.navegacao-depois { font-size: 12px; font-weight: 600; opacity: 0.75; margin-top: 3px; }
+
+.navegacao-recalculando,
+.navegacao-carregando {
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 9px 13px;
+}
+.navegacao-alerta {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 9px 13px;
+}
+
+.navegacao-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  padding-top: 11px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.navegacao-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.navegacao-botao {
+  padding: 8px 15px;
+  font-size: 12px;
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #f4f8ff;
+  background: transparent;
+}
+.navegacao-botao:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.navegacao-voz-ligada { background: rgba(255, 255, 255, 0.22); }
+.navegacao .aviso-falha { color: var(--color-text); }
+
+.parada-atual-alternativa {
+  align-self: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-accent-2-700);
+  text-decoration: underline;
+}
+
+/* ── Entrega que não deu certo ────────────────────────────── */
+/* Discreto de propósito: o caminho normal é a entrega dar certo, e este botão
+   não pode competir de igual para igual com o verde no meio do trânsito. */
+.falhou-abrir {
+  align-self: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-neutral-600);
+  text-decoration: underline;
+  padding: 4px;
+}
+.falhou-abrir:hover { color: var(--color-accent-700); }
+
+.falhou {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--color-accent-100);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 2px;
+}
+.falhou-titulo { font-size: 13.5px; font-weight: 800; color: var(--color-accent-800); }
+.falhou-motivos { display: flex; flex-direction: column; gap: 7px; }
+.falhou-motivo {
+  text-align: left;
+  background: var(--color-neutral-100);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 10px 13px;
+  cursor: pointer;
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Alvo grande: isto é tocado com uma mão, na porta do cliente. */
+  min-height: 46px;
+}
+.falhou-motivo-escolhido { border-color: var(--color-accent); background: #fff; }
+.falhou-motivo-rotulo { font-size: 13.5px; font-weight: 700; color: var(--color-text); }
+.falhou-motivo-ajuda { font-size: 11.5px; font-weight: 600; color: var(--color-neutral-600); }
+
+.falhou-observacao { resize: vertical; font-size: 13px; padding: 10px 13px; }
+.falhou-acoes { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.falhou-confirmar {
+  background: var(--color-accent);
+  color: var(--color-neutral-100);
+  border: none;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 800;
+  min-height: 46px;
+}
+.falhou-confirmar:hover:not(:disabled) { background: var(--color-accent-600); }
+.falhou-cancelar { padding: 13px 18px; font-size: 13px; }
+.falhou-recado {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-accent-800);
+  text-align: center;
+}
+
+/* Já se tentou esta porta antes. */
+.parada-atual-retentativa {
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+  border-radius: 12px;
+  padding: 9px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.rota-retentativas {
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+  border-radius: 14px;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+/* ── Contatos ─────────────────────────────────────────────── */
+.parada-atual-contatos { display: flex; gap: 12px; flex-wrap: wrap; }
+.parada-atual-zap { color: #128c7e; font-weight: 700; }
+
+/* ── Comprovante de entrega ───────────────────────────────── */
+.comprovante {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--color-accent-2-100);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 2px;
+}
+.comprovante-titulo { font-size: 13.5px; font-weight: 800; color: var(--color-accent-2-900); }
+.comprovante .campo { padding: 12px 14px; font-size: 14px; }
+
+/* Um toque preenche o caso comum. Digitar nome na porta do cliente, com o
+   carro em fila dupla, é o tipo de atrito que faz o motorista pular o campo. */
+.comprovante-atalhos { display: flex; gap: 8px; flex-wrap: wrap; }
+.comprovante-atalho {
+  background: var(--color-neutral-100);
+  border: 1.5px solid var(--color-accent-2-300);
+  border-radius: 999px;
+  padding: 7px 15px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-accent-2-800);
+  cursor: pointer;
+}
+.comprovante-atalho:hover { background: var(--color-accent-2-200); }
+
+.comprovante-foto { padding: 12px; font-size: 13px; }
+.comprovante-previa { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.comprovante-previa img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.comprovante-trocar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-neutral-600);
+  text-decoration: underline;
+  padding: 0;
+}
+
+.comprovante-acoes { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.comprovante-acoes .acao-entregue { padding: 14px; font-size: 14.5px; }
+.comprovante-voltar { padding: 14px 20px; font-size: 13px; }
+
+/* Troco: o que o cliente disse que vai entregar na mão. */
+.parada-atual-troco {
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+  border-radius: 12px;
+  padding: 10px 13px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.parada-atual-troco b { font-weight: 800; }
+
+/* ── Sem sinal ────────────────────────────────────────────── */
+.sem-sinal {
+  background: #4a4234;
+  color: #f6f1e7;
+  border-radius: 16px;
+  padding: 12px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.sem-sinal-linha b { font-weight: 800; }
+.sem-sinal-fraco { opacity: 0.78; font-size: 12px; }
+
+/* As ações do cartão (comprovante e "não consegui entregar"), fora do bloco
+   que expande — registrar uma falha não pode depender de descobrir um botão. */
+.parada-acoes-extra { padding: 0 14px 12px; display: flex; flex-direction: column; }

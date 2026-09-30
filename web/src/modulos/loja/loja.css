@@ -1,0 +1,114 @@
+/* ── Loja ─────────────────────────────────────────────────── */
+.vitrine {
+  background: var(--color-accent-2-100);
+  border-radius: 24px;
+  padding: 28px 30px;
+  position: relative;
+  overflow: hidden;
+}
+.categorias {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  position: sticky;
+  top: 64px;
+  z-index: 30;
+  background: var(--color-bg);
+  padding: 12px 0;
+  margin: -12px 0;
+}
+.grade-produtos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 14px;
+}
+.produto {
+  background: var(--color-neutral-100);
+  border-radius: 20px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  box-shadow: var(--shadow-sm);
+  animation: surgir 0.25s ease;
+  transition: box-shadow 0.15s;
+}
+.produto:hover { box-shadow: var(--shadow-md); }
+
+.contador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-accent-2-100);
+  border-radius: 999px;
+  padding: 4px;
+}
+.contador button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+}
+.contador-menos { background: var(--color-neutral-100); color: var(--color-accent-2-900); }
+.contador-mais { background: var(--color-accent-2); color: var(--color-neutral-100); }
+.contador-mais:hover { background: var(--color-accent-2-600); }
+
+.botao-adicionar {
+  padding: 10px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-accent-2);
+  color: var(--color-neutral-100);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.botao-adicionar:hover { background: var(--color-accent-2-600); }
+
+.barra-carrinho {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.barra-carrinho button {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 540px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 26px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-accent-2-900);
+  color: var(--color-neutral-100);
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  animation: subir 0.3s ease;
+}
+.barra-carrinho button:hover { background: var(--color-accent-2-800); }
+
+/* Caminho da equipe e do acompanhamento, no pé da loja. Discreto de propósito:
+   o cliente não precisa deles, mas quem precisa não deveria decorar endereço.
+   A margem de baixo é para a barra do carrinho não tapar. */
+.loja-rodape {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 0 96px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-neutral-500);
+}
+.loja-rodape a { color: var(--color-neutral-600); text-decoration: underline; }
+.loja-rodape a:hover { color: var(--color-accent-2-800); }
