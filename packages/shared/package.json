@@ -1,0 +1,18 @@
+{
+  "name": "@emporium/shared",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Tipos e constantes compartilhados entre a API e o site",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

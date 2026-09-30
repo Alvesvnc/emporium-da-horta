@@ -8,11 +8,11 @@ build/
 npm-debug.log*
 
 # Prisma Client gerado — recriado por `npm run db:generate`
-api/src/banco/gerado/
+apps/api/src/banco/gerado/
 
 # fotos enviadas pelo dono no modo de armazenamento local
-api/uploads/*
-!api/uploads/.gitkeep
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
 
 .DS_Store
 Thumbs.db

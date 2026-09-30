@@ -59,47 +59,50 @@ checkout junto, em vez de caçar pedaços em `components/`, `pages/` e `lib/`.
 
 ```
 .                                 raiz do projeto
-├── package.json                  workspaces: api e web
+├── package.json                  workspaces: apps/* e packages/*
 ├── .env                          configuração local (não vai para o git)
 │
-├── api/                          servidor Fastify — as regras do negócio
-│   ├── prisma/
-│   │   ├── schema.prisma         desenho do banco
-│   │   └── migrations/           SQL das migrações (não edite as já aplicadas)
-│   ├── prisma.config.ts          URLs de conexão usadas pelo CLI do Prisma
-│   └── src/
-│       ├── main.ts               sobe o servidor
-│       ├── app.ts                monta o Fastify: plugins + módulos
-│       ├── config/               .env conferido (ambiente) e caminhos de disco
-│       ├── banco/
-│       │   ├── conexao.ts        Prisma Client + driver adapter do Postgres
-│       │   ├── gerado/           Prisma Client (gerado, fora do git)
-│       │   └── scripts/preparar  primeiro uso do banco
-│       ├── modulos/              um por assunto: loja, pedidos, clientes,
-│       │   │                     equipe, catalogo, configuracoes, metricas,
-│       │   │                     entregas
-│       │   └── pedidos/          *.endpoints (HTTP), *.servico (regras),
-│       │                         *.esquemas (formato aceito)
-│       └── comum/                autenticação, dinheiro, arquivos, endereços
-│           └── entrega/          geografia (distância) e roteador (OSRM)
+├── apps/
+│   ├── api/                      servidor Fastify — as regras do negócio
+│   │   ├── prisma/
+│   │   │   ├── schema.prisma     desenho do banco
+│   │   │   └── migrations/       SQL das migrações (não edite as já aplicadas)
+│   │   ├── prisma.config.ts      URLs de conexão usadas pelo CLI do Prisma
+│   │   └── src/
+│   │       ├── main.ts           sobe o servidor
+│   │       ├── app.ts            monta o Fastify: plugins + módulos
+│   │       ├── config/           .env conferido (ambiente) e caminhos de disco
+│   │       ├── banco/
+│   │       │   ├── conexao.ts    Prisma Client + driver adapter do Postgres
+│   │       │   ├── gerado/       Prisma Client (gerado, fora do git)
+│   │       │   └── scripts/      primeiro uso do banco (preparar)
+│   │       ├── modulos/          um por assunto: loja, pedidos, equipe,
+│   │       │   │                 catalogo, configuracoes, metricas, entregas
+│   │       │   └── pedidos/      *.endpoints (HTTP), *.servico (regras),
+│   │       │                     *.esquemas (formato aceito)
+│   │       └── comum/            autenticação, dinheiro, arquivos, endereços
+│   │           └── entrega/      geografia (distância) e roteador (OSRM)
+│   │
+│   └── web/                      site em React — o que as pessoas veem
+│       └── src/
+│           ├── main.tsx          entra aqui
+│           ├── app/              App, Rotas e o portão das telas da equipe
+│           ├── modulos/          uma pasta por área, uma TELA por arquivo
+│           │   ├── entrada/      TelaEntrada + LoginEquipe
+│           │   ├── loja/         TelaLoja + vitrine, busca, filtro, carrinho
+│           │   ├── checkout/     TelaCheckout, TelaPedidoConfirmado,
+│           │   │                 ResumoDoPedido, FormularioDeEntrega
+│           │   ├── pedido/       TelaAcompanharPedido
+│           │   ├── painel/       TelaPainel + metricas/ + configuracoes/
+│           │   └── entregas/     TelaRota + MapaDaRota + CartaoParada
+│           ├── comum/            componentes, cliente HTTP, estado, formatação
+│           └── styles/           identidade visual da marca
 │
-└── web/                          site em React — o que as pessoas veem
-    └── src/
-        ├── main.tsx              entra aqui
-        ├── app/                  App, Rotas e o portão das telas da equipe
-        ├── modulos/              uma pasta por área, uma TELA por arquivo
-        │   ├── entrada/          TelaEntrada + MenuInicial + LoginCliente
-        │   │                     + LoginEquipe
-        │   ├── loja/             TelaLoja + vitrine, busca, filtro, cartão
-        │   │                     de produto, barra do carrinho
-        │   ├── checkout/         TelaCheckout, TelaPedidoConfirmado,
-        │   │                     ResumoDoPedido, FormularioDeEntrega
-        │   ├── meus-pedidos/     TelaMeusPedidos + CartaoPedido
-        │   ├── painel/           TelaPainel + metricas/ + configuracoes/
-        │   └── entregas/         TelaRota + MapaDaRota + CartaoParada
-        ├── comum/                componentes, cliente HTTP e tipos, estado
-        │                        (sessão e carrinho), formatação
-        └── estilos/              tokens.css é a identidade visual da marca
+└── packages/
+    └── shared/                   contrato entre API e site (@emporium/shared)
+        └── src/
+            ├── tipos.ts          formato do que a API devolve
+            └── unidades.ts       códigos de unidade de venda (kg, maco...)
 ```
 
 Três combinações de nome que valem conhecer:
@@ -250,7 +253,7 @@ em linha reta e avisa, em vez de deixar o motorista esperando.
 
 ## Trocando para o Supabase
 
-Hoje o banco é um Postgres embutido que roda na sua máquina (pasta `api/.data/`), sem
+Hoje o banco é um Postgres embutido que roda na sua máquina (pasta `apps/api/.data/`), sem
 precisar instalar nada. Quando quiser o banco na nuvem:
 
 1. Crie um projeto grátis em [supabase.com](https://supabase.com) — anote a senha do banco.
